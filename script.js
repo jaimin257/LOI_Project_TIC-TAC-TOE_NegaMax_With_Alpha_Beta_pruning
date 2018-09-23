@@ -10,15 +10,31 @@ var Ai_player = "O";		//AI
 var MAX_DEPTH;
 var infinite = 1000000000;
 var m_infinite = -1000000000;
-//var flag=0;
+var roww = [];
+var coll = [];
+var maindig;
+var othdig;
+var row1 = [];
+var col1 = [];
+var maindig1;
+var othdig1;
+var total_move;
+var round = 0;
 
 function generateFields() 
 {
 	var input = document.getElementById("input").value;
 	number = Number(input);  
-	MAX_DEPTH = number*number;		// CHANGE THIS VALUE TO ADD DIFFICULTY LEVEL!!!  
-	//  if(flag!=number) {
-	//  	flag=number;
+	MAX_DEPTH = number*number;
+	for(var i=0;i<number;i++)
+	{
+		roww.push(0);
+		row1.push(0);
+		coll.push(0);
+		col1.push(0);
+	}
+	maindig = 0;
+	othdig = 0;
 
 	jcell = new Array(number);
 
@@ -34,7 +50,6 @@ function generateFields()
 			newTD.classList.add('cell');
 			newTD.style.width="50px";
 			newTD.style.height="50px";
-			//newTD.innerHTML = i + " " + j;
 			newTD.innerHTML="";
 			newTD.dataset.row = i;
 			newTD.dataset.col = j;
@@ -45,8 +60,6 @@ function generateFields()
 		tableId.appendChild(newTR);
 	}
 }
-//  }
-
 
 function handleClick(e)
 {
@@ -54,13 +67,36 @@ function handleClick(e)
 	var j=e.target.dataset.col;
 	if(is_valid_move(i,j))
 	{
-		make_move(i,j);
+		if(player%2==0)	{	
+			jcell[i][j].innerHTML = "X";	roww[i]--;	coll[j]--;
+			if(i == j)
+				maindig--;
+			if((i+j+1) == number)
+				othdig--;	
+		}		
+		else	{   		
+			jcell[i][j].innerHTML = "O";	roww[i]++;	coll[j]++;
+			if(i == j)	maindig++;
+			if((i+j+1) == number)	othdig++;	
+		}
+		player++;
 		checkwinner();
-		if(resultstatus.innerHTML == "X won" || resultstatus.innerHTML == "O won" || resultstatus.innerHTML == "It's Tie")
+		if(gameOver == 1)
 			return;
 		var AI_move = AI_turn();
-		//console.log("AI_MOVE : " + AI_move);
-		make_move(Math.floor(AI_move/number),Math.floor(AI_move%number));
+		i = Math.floor(AI_move/number);
+		j = Math.floor(AI_move%number);
+		if(player%2==0)	{	
+			jcell[i][j].innerHTML = "X";	roww[i]--;	coll[j]--;	
+			if(i == j)	maindig--;
+			if((i+j+1) == number)	othdig--;
+		}		
+		else	{   		
+			jcell[i][j].innerHTML = "O";	roww[i]++;	coll[j]++;	
+			if(i == j)	maindig++;
+			if((i+j+1) == number)	othdig++;
+		}
+		player++;
 		checkwinner();
 	}
 }
@@ -78,168 +114,115 @@ function is_valid_move(i,j)
 	}
 }
 
-function make_move(i,j)
-{
-	if(player%2==0)	
-	{
-		jcell[i][j].innerHTML = "X";		
-	}		
-	else
-	{   		
-		jcell[i][j].innerHTML = "O";	
-	}
-	player++;
-}
-
 function checkwinner()
 {
-	var ld=0;
-	var rd=0;
-	var scr;
-	//For rows check
+	if(maindig == number || othdig == number)
+	{
+		resultstatus.innerHTML="O won";
+		gameOver = 1;
+	}
+	else if(maindig == -number || othdig == -number)
+	{
+		resultstatus.innerHTML="X won";
+		gameOver = 1;
+	}
 	for(var i=0;i<number;i++)
 	{
-		var cnt=0
-		for(var j=0;j<number;j++)
-		{
-			if(jcell[i][j].innerHTML=="X")
-				cnt++;
-			else if(jcell[i][j].innerHTML=="O")
-				cnt--;
-
+		if(roww[i] == number || coll[i] == number)
+		{	
+			resultstatus.innerHTML="O won";
+			gameOver = 1;
 		}
-		scr = declarresult(cnt);
-		if(scr == 1 || scr == -1)
+		else if(roww[i] == -number || coll[i] == -number)
 		{
-			return;
+			resultstatus.innerHTML="X won";
+			gameOver = 1;
 		}
 	}
-
-	// For columns check
-	for(var j=0;j<number;j++)
-	{
-		var cnt=0
-		for(var i=0;i<number;i++)
-		{
-			if(jcell[i][j].innerHTML=="X")
-			{
-				cnt++;
-			}
-			else if(jcell[i][j].innerHTML=="O")
-			{
-				cnt--;
-			}
-		}
-		scr = declarresult(cnt);
-		if(scr == 1 || scr == -1)
-		{
-			return;
-		}
-	}
-
-	//For main-digonal check
-	for(var i=0;i<number;i++){
-		if(jcell[i][i].innerHTML=="X")
-		{
-			ld++;
-		}
-		else if(jcell[i][i].innerHTML=="O")
-		{
-			ld--;
-		}
-	}
-		
-	//For other digonal check
-	for(var i=0;i<number;i++){
-		if(jcell[number-1-i][i].innerHTML=="X")
-		{
-			rd++;
-		}
-		else if(jcell[number-1-i][i].innerHTML=="O")
-		{
-			rd--;
-		}
-	}	
-
-	scr = declarresult(ld);
-	if(scr == 1 || scr == -1){	return;	}
-	scr = declarresult(rd);
-	if(scr == 1 || scr == -1){	return;	}
-
-	if(player == number*number)
+	if(gameOver == 0 && player == number*number)
 	{
 		resultstatus.innerHTML="It's Tie";
 		gameOver = 1;
 	}
 }
 
-function declarresult(cnt)
-{
-	if(cnt==number)
-	{
-		resultstatus.innerHTML="X won";
-		gameOver = 1;
-		return 1;
-	}
-	if(cnt==(-number))
-	{
-		resultstatus.innerHTML="O won";
-		gameOver = 1;
-		return -1;
-	}
-	return 0;
-}
-
 function AI_turn()
 {
- 	var board = [];
 	for(var i=0;i<number;i++)
+	{
+		row1[i] = 0;
+		col1[i] = 0;
+	}
+	maindig1 = 0;
+	othdig1 = 0;
+	total_move = 0;
+
+	//Making the board and initializing it...
+	 var board = [];
+	 for(var i=0;i<number;i++)
 	{
 		for(var j=0;j<number;j++)
 		{
 			if(jcell[i][j].innerHTML=="X")
-				board.push("X");
+			{	
+				row1[i]--;	col1[j]--;
+				if(i == j)
+					maindig1--;
+				if((i+j+1) == number)
+					othdig1--;
+			}
 			else if(jcell[i][j].innerHTML=="O")
-				board.push("O");
+			{	
+				row1[i]++;	col1[j]++;
+				if(i == j)
+					maindig1++;
+				if((i+j+1) == number)
+					othdig1++;
+			}
 			else
-				board.push("_");
-		}
-	}
-	//console.log("AI board : " + board);
-	var bestMove = -1;
-	var bestVal = -1000;
-	for(var i=0;i<number;i++)
-	{
-		for(var j=0;j<number;j++)
-		{
-			if(board[i*number + j] == "_")
-			{
-				board[i*number + j] = "O";
-				//console.log("mini on : " + board);
-				var moveVal = (-1)*(NegaMax(board,0,0,m_infinite,infinite));		//0 for human and 1 for AI(computer)...
-				//console.log("moveval : " + moveVal);
-				board[i*number + j] = "_";
-				if (moveVal > bestVal)
-                {
-					bestMove = i*number + j;
-                    bestVal = moveVal;
-                }
+			{	
+				board.push(i*number + j);	
 			}
 		}
 	}
+	
+	var bestMove = -1;
+	var bestVal = -1000;
+
+	
+	for(var k=0;k<board.length;k++)
+	{
+		var tmp_board = board.slice();
+		var first = tmp_board.shift();
+		var i = Math.floor(first/number);
+		var j = Math.floor(first%number);
+		row1[i]++;	col1[j]++;
+		if(i == j)
+			maindig1++;
+		if((i+j+1) == number)
+			othdig1++;
+		var moveVal = (-1)*(NegaMax(tmp_board,0,0,m_infinite,infinite));		//0 for human and 1 for AI(computer)...
+		row1[i]--;	col1[j]--;
+		if(i == j)
+			maindig1--;
+		if((i+j+1) == number)
+			othdig1--;
+		total_move--;
+		if (moveVal > bestVal)
+		{
+			bestMove = first;	
+			bestVal = moveVal;
+		}
+		first = board.shift();
+		board.push(first);
+	}
+
 	return bestMove;
 }
 
-function NegaMax(board,depth,pid,alpha,beta)
+function NegaMax(tmp_board,depth,pid,alpha,beta)
 {
-	var score = Evaluate(board);
-	/* if(depth<2)
-	{
-		console.log(alpha);
-		console.log(beta);
-		console.log(score);
-		console.log(board);
-	} */
+	var score = Evaluate();
 	if (score == 100 && pid == 0)
 		return -10;
 	else if(score == 100 && pid == 1)
@@ -251,134 +234,94 @@ function NegaMax(board,depth,pid,alpha,beta)
 
 	if(depth>MAX_DEPTH)
 	{
-		//console.log("hey depth : " + board);
 		return 0;
 	}
-	if (isMovesLeft(board)==false)
+	if(tmp_board.length == 0)
 		return 0;
-	
+
 	var best = m_infinite;
-	for (var i = 0; i<number; i++)
+	var tmp_len = tmp_board.length;
+	for(var k=0;k<tmp_len;k++)
 	{
-		for (var j = 0; j<number; j++)
+		var ttt_board = tmp_board.slice();
+		var first = ttt_board.shift();
+		var i = Math.floor(first/number);
+		var j = Math.floor(first%number);
+		if(pid == 0)
 		{
-			if (board[number*i + j]=="_")
-			{
-				if(pid == 0)
-					board[number*i + j] = "X";
-				else
-					board[number*i + j] = "O";
-				//console.log("mini recurrr : " + board);
-				var x = (-1)*NegaMax(board, depth+1,  (pid+1)%2,(-1)*beta,(-1)*alpha);
-				best = Math.max( best , x);
-				//console.log("mini bbest : " + best);
-                board[number*i + j] = "_";
-                if(x>alpha)
-				{
-					alpha = x;
-				}
-				if(alpha>=beta)
-				{
-					//console.log("returning : " + alpha);
-					return alpha;
-				}
-			}
+			row1[i]--;	col1[j]--;
+			if(i == j)
+				maindig1--;
+			if((i+j+1) == number)
+				othdig1--;
 		}
+		else
+		{
+			row1[i]++;	col1[j]++;
+			if(i == j)
+				maindig1++;
+			if((i+j+1) == number)
+				othdig1++;
+		}
+		var x = (-1)*NegaMax(ttt_board, depth+1,  (pid+1)%2,(-1)*beta,(-1)*alpha);
+		best = Math.max( best , x);
+		if(pid == 0)
+		{
+			row1[i]++;	col1[j]++;
+			if(i == j)
+				maindig1++;
+			if((i+j+1) == number)
+				othdig1++;
+			total_move--;
+		}
+		else
+		{
+			row1[i]--;	col1[j]--;
+			if(i == j)
+				maindig1--;
+			if((i+j+1) == number)
+				othdig1--;
+			total_move--;
+		}
+		first = tmp_board.shift();
+		tmp_board.push(first);
+				
+		if(x>alpha)
+		{
+			alpha = x;
+		}
+		if(alpha>=beta)
+		{
+			return alpha;
+		}
+		round++;
 	}
+
 	return best;
 }
 
-function Evaluate(board)
+function Evaluate()
 {
-	var ld=0;
-	var rd=0;
-	var scr;
-
-	//For rows check
+	if(maindig1 == number || othdig1 == number)
+	{
+		return 100;
+	}
+	else if(maindig1 == -number || othdig1 == -number)
+	{
+		return -100;
+	}
 	for(var i=0;i<number;i++)
 	{
-		var cnt=0;
-		for(var j=0;j<number;j++)
-		{
-			if(board[i*number + j]=="X")
-				cnt--;
-			else if(board[i*number + j]=="O")
-				cnt++;
+		if(row1[i] == number || col1[i] == number)
+		{	
+			return(100);
 		}
-		scr = evalResult(cnt);
-		if(scr == 1 || scr == -1)
+		else if(row1[i] == -number || col1[i] == -number)
 		{
-			return (100*scr);
+			return(-100);
 		}
 	}
-
-	// For columns check
-	for(var j=0;j<number;j++)
-	{
-		var cnt=0;
-		for(var i=0;i<number;i++)
-		{
-			if(board[i*number + j]=="X")
-			{
-				cnt--;
-			}
-			else if(board[i*number + j]=="O")
-			{
-				cnt++;
-			}
-		}
-		scr = evalResult(cnt);
-		if(scr == 1 || scr == -1)
-		{
-			return (100*scr);
-		}
-	}
-
-	//For main-digonal check
-	for(var i=0;i<number;i++){
-		if(board[i*number + i]=="X")
-		{
-			ld--;
-		}
-		else if(board[i*number + i]=="O")
-		{
-			ld++;
-		}
-	}
-		
-	//For other digonal check
-	for(var i=0;i<number;i++){
-		if(board[(number-1-i)*(number) + i] == "X")
-		{
-			rd--;
-		}
-		else if(board[(number-1-i)*(number) + i] == "O")
-		{
-			rd++;
-		}
-	}	
 	
-	scr = evalResult(ld);
-	if(scr == 1 || scr == -1){	return	(100*scr);	}
-	scr = evalResult(rd);
-	if(scr == 1 || scr == -1){	return (100*scr);	}
-
 	return 0;
 
-}
-
-function evalResult(cnt)
-{
-	if(cnt==number)	{	return 1;	}
-	if(cnt==(-number)){	return -1;	}
-	return 0;
-}
-
-function isMovesLeft(board)
-{
-    for (var i = 0; i<number; i++)
-        for (var j = 0; j<number; j++)
-			if (board[number*i + j]=="_")
-                return true;
-    return false;
 }

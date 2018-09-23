@@ -8,8 +8,16 @@ var gameOver = 0;
 var opponent = "X";		//human
 var Ai_player = "O";		//AI
 var MAX_DEPTH;
-var infinite;
-var m_infinite;
+var infinite = 1000000000;
+var m_infinite = -1000000000;
+var roww = [];
+var coll = [];
+var maindig;
+var othdig;
+var row1 = [];
+var col1 = [];
+var maindig1;
+var othdig1;
 //var flag=0;
 
 function generateFields() 
@@ -17,10 +25,14 @@ function generateFields()
 	var input = document.getElementById("input").value;
 	number = Number(input);  
 	MAX_DEPTH = number*number;		// CHANGE THIS VALUE TO ADD DIFFICULTY LEVEL!!!  
-	infinite = Number(1000000);
-	m_infinite = Number(-10000000);
-	//  if(flag!=number) {
-	//  	flag=number;
+	
+	for(var i=0;i<number;i++)
+	{
+		roww.push(0);
+		coll.push(0);
+	}
+	maindig = 0;
+	othdig = 0;
 
 	jcell = new Array(number);
 
@@ -36,7 +48,6 @@ function generateFields()
 			newTD.classList.add('cell');
 			newTD.style.width="50px";
 			newTD.style.height="50px";
-			//newTD.innerHTML = i + " " + j;
 			newTD.innerHTML="";
 			newTD.dataset.row = i;
 			newTD.dataset.col = j;
@@ -47,8 +58,6 @@ function generateFields()
 		tableId.appendChild(newTR);
 	}
 }
-//  }
-
 
 function handleClick(e)
 {
@@ -56,13 +65,39 @@ function handleClick(e)
 	var j=e.target.dataset.col;
 	if(is_valid_move(i,j))
 	{
-		make_move(i,j);
+		if(player%2==0)	{	
+			jcell[i][j].innerHTML = "X";	roww[i]--;	coll[j]--;
+			if(i == j)
+				maindig--;
+			if((i+j+1) == number)
+				othdig--;	
+		}		
+		else	{   		
+			jcell[i][j].innerHTML = "O";	roww[i]++;	coll[j]++;
+			if(i == j)	maindig++;
+			if((i+j+1) == number)	othdig++;	
+		}
+		player++;
 		checkwinner();
-		if(resultstatus.innerHTML == "X won" || resultstatus.innerHTML == "O won" || resultstatus.innerHTML == "It's Tie")
+		if(gameOver == 1)
 			return;
+		console.log("human : " + i + " " + j + " " + maindig + " " + othdig);
 		var AI_move = AI_turn();
-		console.log("AI_MOVE : " + AI_move);
-		make_move(Math.floor(AI_move/number),Math.floor(AI_move%number));
+		i = Math.floor(AI_move/number);
+		j = Math.floor(AI_move%number);
+		if(player%2==0)	{	
+			jcell[i][j].innerHTML = "X";	roww[i]--;	coll[j]--;	
+			if(i == j)	maindig--;
+			if((i+j+1) == number)	othdig--;
+		}		
+		else	{   		
+			jcell[i][j].innerHTML = "O";	roww[i]++;	coll[j]++;	
+			if(i == j)	maindig++;
+			if((i+j+1) == number)	othdig++;
+		}
+		console.log("AI : " + i + " " + j + " " + maindig + " " + othdig);
+
+		player++;
 		checkwinner();
 	}
 }
@@ -80,116 +115,36 @@ function is_valid_move(i,j)
 	}
 }
 
-function make_move(i,j)
-{
-	if(player%2==0)	
-	{
-		jcell[i][j].innerHTML = "X";		
-	}		
-	else
-	{   		
-		jcell[i][j].innerHTML = "O";	
-	}
-	player++;
-}
-
 function checkwinner()
 {
-	var ld=0;
-	var rd=0;
-	var scr;
-	//For rows check
+	if(maindig == number || othdig == number)
+	{
+		resultstatus.innerHTML="O won";
+		gameOver = 1;
+	}
+	else if(maindig == -number || othdig == -number)
+	{
+		resultstatus.innerHTML="X won";
+		gameOver = 1;
+	}
 	for(var i=0;i<number;i++)
 	{
-		var cnt=0
-		for(var j=0;j<number;j++)
-		{
-			if(jcell[i][j].innerHTML=="X")
-				cnt++;
-			else if(jcell[i][j].innerHTML=="O")
-				cnt--;
-
+		if(roww[i] == number || coll[i] == number)
+		{	
+			resultstatus.innerHTML="O won";
+			gameOver = 1;
 		}
-		scr = declarresult(cnt);
-		if(scr == 1 || scr == -1)
+		else if(roww[i] == -number || coll[i] == -number)
 		{
-			return;
+			resultstatus.innerHTML="X won";
+			gameOver = 1;
 		}
 	}
-
-	// For columns check
-	for(var j=0;j<number;j++)
-	{
-		var cnt=0
-		for(var i=0;i<number;i++)
-		{
-			if(jcell[i][j].innerHTML=="X")
-			{
-				cnt++;
-			}
-			else if(jcell[i][j].innerHTML=="O")
-			{
-				cnt--;
-			}
-		}
-		scr = declarresult(cnt);
-		if(scr == 1 || scr == -1)
-		{
-			return;
-		}
-	}
-
-	//For main-digonal check
-	for(var i=0;i<number;i++){
-		if(jcell[i][i].innerHTML=="X")
-		{
-			ld++;
-		}
-		else if(jcell[i][i].innerHTML=="O")
-		{
-			ld--;
-		}
-	}
-		
-	//For other digonal check
-	for(var i=0;i<number;i++){
-		if(jcell[number-1-i][i].innerHTML=="X")
-		{
-			rd++;
-		}
-		else if(jcell[number-1-i][i].innerHTML=="O")
-		{
-			rd--;
-		}
-	}	
-
-	scr = declarresult(ld);
-	if(scr == 1 || scr == -1){	return;	}
-	scr = declarresult(rd);
-	if(scr == 1 || scr == -1){	return;	}
-
 	if(player == number*number)
 	{
 		resultstatus.innerHTML="It's Tie";
 		gameOver = 1;
 	}
-}
-
-function declarresult(cnt)
-{
-	if(cnt==number)
-	{
-		resultstatus.innerHTML="X won";
-		gameOver = 1;
-		return 1;
-	}
-	if(cnt==(-number))
-	{
-		resultstatus.innerHTML="O won";
-		gameOver = 1;
-		return -1;
-	}
-	return 0;
 }
 
 function AI_turn()
@@ -200,28 +155,25 @@ function AI_turn()
 		for(var j=0;j<number;j++)
 		{
 			if(jcell[i][j].innerHTML=="X")
-				board.push("X");
+			{	board.push(1);	}
 			else if(jcell[i][j].innerHTML=="O")
-				board.push("O");
+			{	board.push(-1);	}
 			else
-				board.push("_");
+			{	board.push(0);	}
 		}
 	}
-	console.log("AI board : " + board);
+
 	var bestMove = -1;
 	var bestVal = -1000;
 	for(var i=0;i<number;i++)
 	{
 		for(var j=0;j<number;j++)
 		{
-			if(board[i*number + j] == "_")
+			if(board[i*number + j] == 0)
 			{
-				board[i*number + j] = "O";
-				console.log("mini on : " + board);
-				console.log(m_infinite + "DWWF " + infinite);
+				board[i*number + j] = -1;
 				var moveVal = (-1)*(NegaMax(board,0,0,m_infinite,infinite));		//0 for human and 1 for AI(computer)...
-				console.log("moveval : " + moveVal);
-				board[i*number + j] = "_";
+				board[i*number + j] = 0;
 				if (moveVal > bestVal)
                 {
 					bestMove = i*number + j;
@@ -235,24 +187,18 @@ function AI_turn()
 
 function NegaMax(board,depth,pid,alpha,beta)
 {
-	if(depth == 0)
-	{
-		console.log("first : " + alpha + beta);
-	}
 	var score = Evaluate(board);
-	//console.log("board : " + board + " " + score)
 	if (score == 100 && pid == 0)
-		return -100;
+		return -10;
 	else if(score == 100 && pid == 1)
-		return 100;
+		return 10;
 	if (score == -100 && pid == 0)
-		return 100;
+		return 10;
 	else if(score == -100 && pid == 1)
-		return -100;
+		return -10;
 
 	if(depth>MAX_DEPTH)
 	{
-		console.log("hey depth : " + board);
 		return 0;
 	}
 	if (isMovesLeft(board)==false)
@@ -263,29 +209,26 @@ function NegaMax(board,depth,pid,alpha,beta)
 	{
 		for (var j = 0; j<number; j++)
 		{
-			if (board[number*i + j]=="_")
+			if (board[number*i + j]==0)
 			{
 				if(pid == 0)
-					board[number*i + j] = "X";
+					board[number*i + j] = 1;
 				else
-					board[number*i + j] = "O";
-				//console.log("mini recurrr : " + board);
-				best = Math.max( best , (-1)*NegaMax(board, depth+1, (pid+1)%2, (-1)*alpha, (-1)*beta));
-				//console.log("mini bbest : " + best);
-				board[number*i + j] = "_";
-				if(best>alpha)
+					board[number*i + j] = -1;
+				var x = (-1)*NegaMax(board, depth+1,  (pid+1)%2,(-1)*beta,(-1)*alpha);
+				best = Math.max( best , x);
+                board[number*i + j] = 0;
+                if(x>alpha)
 				{
-					alpha = best;
+					alpha = x;
 				}
 				if(alpha>=beta)
 				{
-					console.log("returning : " + alpha);
 					return alpha;
 				}
 			}
 		}
 	}
-	//console.log("best : " + best);
 	return best;
 }
 
@@ -298,12 +241,12 @@ function Evaluate(board)
 	//For rows check
 	for(var i=0;i<number;i++)
 	{
-		var cnt=0
+		var cnt=0;
 		for(var j=0;j<number;j++)
 		{
-			if(board[i*number + j]=="X")
+			if(board[i*number + j]==1)
 				cnt--;
-			else if(board[i*number + j]=="O")
+			else if(board[i*number + j]==-1)
 				cnt++;
 		}
 		scr = evalResult(cnt);
@@ -316,14 +259,14 @@ function Evaluate(board)
 	// For columns check
 	for(var j=0;j<number;j++)
 	{
-		var cnt=0
+		var cnt=0;
 		for(var i=0;i<number;i++)
 		{
-			if(board[i*number + j]=="X")
+			if(board[i*number + j]==1)
 			{
 				cnt--;
 			}
-			else if(board[i*number + j]=="O")
+			else if(board[i*number + j]==-1)
 			{
 				cnt++;
 			}
@@ -337,11 +280,11 @@ function Evaluate(board)
 
 	//For main-digonal check
 	for(var i=0;i<number;i++){
-		if(board[i*number + i]=="X")
+		if(board[i*number + i]==1)
 		{
 			ld--;
 		}
-		else if(board[i*number + i]=="O")
+		else if(board[i*number + i]==-1)
 		{
 			ld++;
 		}
@@ -349,11 +292,11 @@ function Evaluate(board)
 		
 	//For other digonal check
 	for(var i=0;i<number;i++){
-		if(board[(number-1-i)*(number) + i] == "X")
+		if(board[(number-1-i)*(number) + i] == 1)
 		{
 			rd--;
 		}
-		else if(board[(number-1-i)*(number) + i] == "O")
+		else if(board[(number-1-i)*(number) + i] == -1)
 		{
 			rd++;
 		}
@@ -379,7 +322,7 @@ function isMovesLeft(board)
 {
     for (var i = 0; i<number; i++)
         for (var j = 0; j<number; j++)
-			if (board[number*i + j]=="_")
+			if (board[number*i + j]==0)
                 return true;
     return false;
 }
