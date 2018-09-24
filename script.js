@@ -68,14 +68,14 @@ function handleClick(e)
 	if(is_valid_move(i,j))
 	{
 		if(player%2==0)	{	
-			jcell[i][j].innerHTML = "X";	roww[i]--;	coll[j]--;
+			jcell[i][j].innerHTML = "X";	roww[i]--;	coll[j]--;	//For humans -1...
 			if(i == j)
 				maindig--;
 			if((i+j+1) == number)
 				othdig--;	
 		}		
 		else	{   		
-			jcell[i][j].innerHTML = "O";	roww[i]++;	coll[j]++;
+			jcell[i][j].innerHTML = "O";	roww[i]++;	coll[j]++;	//For player 1...
 			if(i == j)	maindig++;
 			if((i+j+1) == number)	othdig++;	
 		}
@@ -86,7 +86,7 @@ function handleClick(e)
 		var AI_move = AI_turn();
 		i = Math.floor(AI_move/number);
 		j = Math.floor(AI_move%number);
-		if(player%2==0)	{	
+		if(player%2==0)	{			
 			jcell[i][j].innerHTML = "X";	roww[i]--;	coll[j]--;	
 			if(i == j)	maindig--;
 			if((i+j+1) == number)	othdig--;
